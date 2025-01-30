@@ -1,0 +1,31 @@
+-- procedures push previous pc to stack
+-- "=" or empty args mean acc
+-- references or variable names are just for compile time an
+-- are in runtime or program just ( relative ) numbers/pointers
+main -> int:
+    var1: push 3    -- push to stack and save the reference as var1
+    var2: push 5    -- push to stack and save the reference as var2
+    pop             -- pop var2 ( reference lost ) and move to acc
+    add var1        -- add var1 to acc
+    print           -- print acc
+
+    call proc       -- call "proc"
+    string: =       -- store acc at variable with reference "string" in stack
+    call free_proc  -- frees "string"
+    set 0           -- set acc to 0
+    return          -- return acc if no argument else return argument
+                    -- returns set pc to last pc
+
+
+proc -> char*:
+    push 9          -- allocate 9 bytes
+    alloc           -- idea is that return values are stored in acc or registers
+    ptr: push =     -- empty pushes push acc to stack -- give reference ptr
+    sta ptr "A"     -- set mem at ptr  to "A"
+
+    return ptr
+
+free_proc:          -- subrutine - no return
+    pop             -- pop to acc
+    free            -- free memory ptr at acc since not args
+    return          -- since no return value return should be optional
