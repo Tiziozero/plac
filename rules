@@ -1,0 +1,16 @@
+// claude sonnet 3.5
+program    -> procedures
+procedure  -> indent_level_0 identifier "->" [return_type] ":" operation+
+
+operation  -> 
+    indent_level_n instruction [data] |
+    indent_level_n "for" [condition] ":" operation+ |
+    indent_level_n [identifier] ":" "push" value
+
+data       -> 
+    literal        // "3" or "'A'"
+    | dereference  // "*a"
+    | reference    // "&a"
+
+literal    -> NUMBER | CHAR_LITERAL
+value      -> literal | reference
