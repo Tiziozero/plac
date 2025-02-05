@@ -1,0 +1,19 @@
+program     -> operation+
+
+operation   -> instruction [arguments] 
+            | identifier ":" "push" [arguments]  // Stack operations
+
+instruction -> "push" | "pop" | "set" | "mov" 
+            | "lda" | "sta"
+            | "mod" | "add" | "sub" | "mlt" | "dv"
+            | "jmp" | "cmp"
+
+arguments   -> data ("," data)*  // Instructions can take multiple arguments
+
+data        -> number | register | reference
+
+number      -> DIGIT+  // A sequence of digits (e.g., 123, 42)
+register    -> "r1" | "r2" | "r3" | "r4" | "="  // General-purpose registers
+reference   -> identifier  // Named reference (e.g., label, memory address)
+
+identifier  -> LETTER (LETTER | DIGIT)*  // Variable names or labels

@@ -1,16 +1,27 @@
-// claude sonnet 3.5
-program    -> procedures
-procedure  -> indent_level_0 identifier "->" [return_type] ":" operation+
+// ChatGPT 3.4/4/4o
+program      -> procedure+
 
-operation  -> 
-    indent_level_n instruction [data] |
-    indent_level_n "for" [condition] ":" operation+ |
-    indent_level_n [identifier] ":" "push" value
+procedure    -> indent_level_0 identifier "->" [return_type] ":" operation+
 
-data       -> 
-    literal        // "3" or "'A'"
-    | dereference  // "*a"
-    | reference    // "&a"
+operation    -> 
+    indent_level_n instruction [arguments]  // General instruction
+    | indent_level_n "for" "(" condition ")" ":" operation+  // Loops
+    | indent_level_n "if" "(" condition ")" ":" operation+   // Conditionals
+    | indent_level_n identifier ":" "push" expression  // Stack operation
+    | indent_level_n "return" [expression]  // Optional return value
 
-literal    -> NUMBER | CHAR_LITERAL
-value      -> literal | reference
+instruction  -> identifier [arguments]  // Instructions like "add", "sta", "lda"
+
+arguments    -> expression ("," expression)*  // Multiple expressions allowed
+
+expression   -> term (operator term)*  // Support multiple terms
+term         -> value | "(" expression ")"  // Allow parentheses
+operator     -> "+" | "-" | "*" | "/" | "==" | "!=" | "<" | ">" | "<=" | ">="
+
+value        -> literal | register | reference | dereference
+literal      -> NUMBER | CHAR_LITERAL
+register     -> "R1" | "R2" | "R3" | "R4" | "="  // General-purpose and ACC
+reference    -> identifier  // Variable names (could be stack references)
+dereference  -> "[" identifier "]"  // Memory access, like "[ptr]"
+
+condition    -> expression  // Boolean expressions for if/for
