@@ -2,14 +2,18 @@
 class Token:
     # Let's define our basic token types
     INTEGER = 'INTEGER'
+    STRING = "STRING"
     VALUE = 'VALUE'
+    LESS_THAN = 'LESS_THAN'
     OPERATOR = "OPERATOR"
     IDENTIFIER = 'IDENTIFIER'
     ARROW = 'ARROW'      # for ->
     COLON = 'COLON'      # for :
     INDENT = 'INDENT'    # for tracking indentation
     EOF = 'EOF'          # end of file
-
+    NL = 'NEW LINE'          # end of file
+    ASSIGN = 'ASSIGN'
+    DEREF = 'DEREFERENCE'
     INSTRUCTIONS = [
         "PUSH" , "POP" , "SET" , "MOV" , "LDA" , "STA",
         "MOD" , "ADD" , "SUB" , "MLT" , "DV", "JMP" , "CMP"
@@ -35,7 +39,9 @@ class Lexer:
         self.current_char:str | None = self.text[self.pos] if text else None
         self.current_indent = 0  # Track indentation level
     
-    def error(self):
+    def error(self, reason = None):
+        if reason:
+            raise Exception(f'Invalid character {self.current_char}, at {self.pos}. Reason: {reason}')
         raise Exception(f'Invalid character {self.current_char}, at {self.pos}')
     
     def advance(self):
@@ -48,39 +54,79 @@ class Lexer:
     
     def skip_whitespace(self):
         """Skip spaces and tabs"""
-        while self.current_char and self.current_char.isspace():
+        while self.current_char and self.current_char in (' ', '\t'):
+            self.advance()
+
     def skip_comment(self):
         """Skip spaces and tabs"""
-        while self.current_char and self.current_char is not "\n":
+        while self.current_char and self.current_char != "\n":
             self.advance()
+    def parse_string(self):
+        out = ""
+        while self.current_char != '"':
+            if self.current_char is not None:
+                out += self.current_char
+            else:
+                self.error()
+        self.advance()
+        return out
 
     def get_next_token(self) :
         while self.current_char is not None: # while file not finished
+            print("parsing:", self.current_char, "pos:", self.pos)
             if not self.current_char:
                 raise Exception("Failed to get next char/token")
-            if self.current_char == "-" and self.peek() == "-":
-                self.skip_comment()
             # skip whitespaces
-            if self.current_char.isspace():
+            # do not skip new line
+            if self.current_char.isspace() and self.current_char != "\n":
                 self.skip_whitespace()
                 continue
-            # get identifier
+
+            # parse comments
+            if self.current_char == "-" and self.peek() == "-":
+                self.skip_comment()
+
+            # parse strings
+            if self.current_char == '"':
+                return Token(Token.STRING, self.parse_string())
+
+            # parse identifier (instructions, functions, n shi..)
             if self.current_char.isalpha():
                 return Token(Token.IDENTIFIER, self.get_identifier())
 
-            # check if it's an arrow
+            # check if it's an arrow - function
             if self.current_char == "-" and self.peek() == ">":
                 self.advance() # skip "-"
                 self.advance() # skip ">"
                 return Token(Token.ARROW)
-            # check for colon
+            # check for colon - function/lable
             if self.current_char == ':':
                 self.advance()
                 return Token(Token.COLON)
-            
+
+            # parse asigntment operator
+            if self.current_char == '=':
+                self.advance()
+                return Token(Token.ASSIGN)
+
+            # parse less than operator
+            if self.current_char == '<':
+                self.advance()
+                return Token(Token.LESS_THAN)
+
+            # parse dereference operator
+            if self.current_char == '*':
+                self.advance()
+                return Token(Token.DEREF)
+
+            # parse number
             if self.current_char.isnumeric():
                 return Token(Token.IDENTIFIER, self.get_number())
-                ...
+
+            # parse new line
+            if self.current_char == "\n":
+                self.advance()
+                return Token(Token.NL, "")
             self.error()
         return Token(Token.EOF)
     
@@ -90,7 +136,7 @@ class Lexer:
             return None
         return self.text[pos]
 
-    def  get_number(self):
+    def get_number(self):
         res = ''
         while self.current_char :
             if self.current_char.isnumeric():
@@ -108,9 +154,9 @@ class Lexer:
             break
         return res
 
-    def  get_identifier(self):
+    def get_identifier(self):
         res = ''
-        while self.current_char and self.current_char.isalnum():
+        while self.current_char and (self.current_char.isalnum() or self.current_char in ('_')):
             res += self.current_char
             self.advance()
         return res
