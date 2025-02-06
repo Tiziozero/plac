@@ -6,6 +6,8 @@ class AST:
 class Node:
     def __init__(self, node_type):
         self.node_type = node_type
+    def exec(self, *args, **kwargs):
+        ...
 
 class PushNode(Node):
     def __init__(self, value):

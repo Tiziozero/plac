@@ -1,4 +1,3 @@
-
 class Token:
     # Let's define our basic token types
     INTEGER = 'INTEGER'
@@ -11,7 +10,7 @@ class Token:
     COLON = 'COLON'      # for :
     INDENT = 'INDENT'    # for tracking indentation
     EOF = 'EOF'          # end of file
-    NL = 'NEW LINE'          # end of file
+    NL = 'NEW_LINE'      # end of line
     ASSIGN = 'ASSIGN'
     DEREF = 'DEREFERENCE'
     INSTRUCTIONS = [
@@ -25,12 +24,13 @@ class Token:
 
     def __str__(self):
         if self.value:
-            return f"Type: {self.type} Value:({self.value})"
-        return str(self.type)
+            return f"{self.type}({self.value})"
+        return f"{self.type}"
+
     def __repr__(self):
         if self.value:
             return f"{self.type}({self.value})"
-        return str(self.type)
+        return f"{self.type}"
 
 class Lexer:
     def __init__(self, text):
@@ -175,7 +175,7 @@ class Parser:
             tokens.append(token)
             if token.type == Token.EOF:
                 break
-        print(tokens)
+        # print(tokens)
         return tokens
 
 
@@ -252,7 +252,26 @@ class Parser:
 
 def parse(text):
     lexer = Lexer(text)
-    _ = Parser(lexer)
+    p = Parser(lexer)
+    import shutil
+    columns, rows = shutil.get_terminal_size()
+    print(f"Width: {columns} chars, Height: {rows} chars")
+
+    tpc = columns // 25 # tokens per column
+    for t in p.tokens:
+        print(f"{str(t): <25}", end="")
+    print()
+
+    i = 0
+    while i < len(p.tokens):
+        for _ in range(tpc):
+            if i < len(p.tokens):
+                print(f"{str(p.tokens[i]): <25}", end="")
+                i += 1
+        print()
+        i += 1
+        
+    return p
 
 # Example usage:
 if __name__ == "__main__":
